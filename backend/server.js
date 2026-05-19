@@ -59,30 +59,190 @@ conexion.connect((error) => {
 // ------------------------------
 
 
-// GET → Obtener todas las películas
-app.get("/peliculas", (req,res) => {
+// Función para obtener todas las películas
+function consultarPeliculas() {
 
-    // Consulta SQL
-    const sql = "SELECT * FROM peliculas";
+    // Creamos la URL de nuestro servidor
+    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
 
-    // Ejecutamos la consulta
-    conexion.query(sql, (error,resultados) => {
+    ENDPOINT_SERVER_PUERTO.port = PORT;
 
-        // Si hay error devolvemos mensaje
-        if(error){
 
-            res.status(500).json(error);
+    // Creamos la URL del endpoint de películas
+    const ENDPOINT_SERVER_PELICULAS = new URL(
 
-        } else {
+        ENDPOINT_OBTENER_PELICULAS,
 
-            // Si todo funciona devolvemos resultados en JSON
-            res.json(resultados);
+        ENDPOINT_SERVER_PUERTO
+
+    );
+
+
+    // Hacemos la petición al backend
+    fetch(ENDPOINT_SERVER_PELICULAS)
+
+    .then(respuesta_servidor => {
+
+        // Si hay error lanzamos mensaje
+        if(!respuesta_servidor.ok){
+
+            throw new Error("Error al obtener las películas.");
 
         }
 
+        // Convertimos la respuesta a JSON
+        return respuesta_servidor.json();
+
+    })
+
+    .then(datos_peliculas => {
+
+        // Mostramos las películas en pantalla
+        mostrarPeliculas(datos_peliculas);
+
+    })
+
+    .catch(error => {
+
+        // Mostramos error en consola
+        console.error("Error consultando películas:", error);
+
+        // Mostramos mensaje de error en pantalla
+        mensajeSalida.innerHTML = `
+
+            <p><b>Error:</b> ${error}</p>
+
+        `;
+
     });
 
-});
+}
+
+
+// Función para insertar una nueva película
+function insertarPelicula(pelicula) {
+
+    // Creamos la URL del Endpoint para insertar una película
+    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
+
+    ENDPOINT_SERVER_PUERTO.port = PORT;
+
+
+    const ENDPOINT_SERVER_INSERTAR_PELICULAS = new URL(
+
+        ENDPOINT_INSERTAR_PELICULAS,
+
+        ENDPOINT_SERVER_PUERTO
+
+    );
+
+
+    fetch(ENDPOINT_SERVER_INSERTAR_PELICULAS, {
+
+        method: "POST",
+
+        headers: {
+
+            "Content-Type": "application/json"
+
+        },
+
+        body: JSON.stringify(pelicula)
+
+    })
+
+    .then(respuesta_servidor => {
+
+        if(!respuesta_servidor.ok){
+
+            throw new Error("Error al insertar la película.");
+
+        }
+
+        return respuesta_servidor.json();
+
+    })
+
+    .then(datos => {
+
+        console.log(datos);
+
+        alert(datos.mensaje);
+
+    })
+
+    .catch(error => {
+
+        console.error("Error al insertar la película:", error); // Muestro el error en la consola
+
+        mensajesalida.innerHTML = `
+
+            <p><b>Error</b>: ${error}</p>
+
+        `; // Muestro mensaje de error en la interfaz
+
+    });
+
+}
+
+
+// Función para eliminar una película
+function eliminarPelicula(pelicula) {
+
+    // Creamos la URL del Endpoint para eliminar una película
+    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
+
+    ENDPOINT_SERVER_PUERTO.port = PORT;
+
+
+    const ENDPOINT_SERVER_ELIMINAR_PELICULAS = new URL(
+
+        ENDPOINT_INSERTAR_ELIMINAR_ACTUALIZAR_PELICULAS + `/${pelicula.id}`,
+
+        ENDPOINT_SERVER_PUERTO
+
+    );
+
+
+    fetch(ENDPOINT_SERVER_ELIMINAR_PELICULAS, {
+
+        method: "DELETE"
+
+    })
+
+    .then(respuesta_servidor => {
+
+        if(!respuesta_servidor.ok){
+
+            throw new Error("Error al eliminar la película.");
+
+        }
+
+        return respuesta_servidor.json();
+
+    })
+
+    .then(datos => {
+
+        console.log(datos);
+
+        alert(datos.mensaje);
+
+    })
+
+    .catch(error => {
+
+        console.error("Error al eliminar la película:", error); // Muestro el error en la consola
+
+        mensajesalida.innerHTML = `
+
+            <p><b>Error</b>: ${error}</p>
+
+        `; // Muestro mensaje de error en la interfaz
+
+    });
+
+}
 
 
 // ------------------------------
