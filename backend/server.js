@@ -1,256 +1,325 @@
-/*
-    En este archivo desarrollamos el backend principal de nuestro proyecto Aelix Stream.
-    Aquí nos encargamos de crear el servidor con Node.js y Express, conectar nuestra
-    aplicación con la base de datos MySQL y crear las rutas de la API para poder obtener
-    información de las películas. También utilizamos JSON para enviar los datos al frontend
-    y conseguir que la página pueda mostrar la información de forma dinámica.
-*/
+/**************************************************************/
+/* Módulo profesional: Lenguajes de Marcas y Sistemas de      */
+/* Gestión de Información                                     */
+/* Unidad didáctica 05: JSON y los SGBD                       */
+/* Proyecto Aelix Stream - Backend API REST                   */
+/**************************************************************/
 
-// Importamos los módulos necesarios para nuestro proyecto
-const express = require("express"); // Framework para crear el servidor
-const mysql = require("mysql2"); // Cliente para conectarnos a MySQL
-const cors = require("cors"); // Permite conectar frontend y backend
-const path = require("path"); // Nos ayuda a trabajar con rutas de carpetas
 
-// Creamos nuestra aplicación con Express
+// --------------------------------------------------
+// IMPORTAMOS LOS MÓDULOS NECESARIOS
+// --------------------------------------------------
+
+const express = require("express");
+const mysql = require("mysql2");
+const cors = require("cors");
+const path = require("path");
+
+
+// --------------------------------------------------
+// CREAMOS LA INSTANCIA DE EXPRESS
+// --------------------------------------------------
+
 const app = express();
 
-// Habilitamos el uso de JSON y CORS
+
+// --------------------------------------------------
+// HABILITAMOS MIDDLEWARES
+// --------------------------------------------------
+
 app.use(cors());
+
 app.use(express.json());
 
-// Hacemos que Express pueda mostrar nuestro frontend desde src/
+
+// --------------------------------------------------
+// SERVIMOS EL FRONTEND
+// --------------------------------------------------
+
 app.use(express.static(path.join(__dirname, "../src")));
 
-// Definimos el puerto donde se ejecutará el servidor
+
+// --------------------------------------------------
+// CONSTANTES NECESARIAS
+// --------------------------------------------------
+
 const PORT = 3000;
 
 
-// CONFIGURACIÓN DE LA CONEXIÓN MYSQL
-const conexion = mysql.createConnection({
+// --------------------------------------------------
+// POOL DE CONEXIONES MYSQL
+// --------------------------------------------------
 
-    host: "localhost", // Dirección del servidor MySQL
-    user: "aelix", // Usuario de MySQL
-    password: "aelix2026", // Contraseña de MySQL
-    database: "aelix_stream" // Nombre de nuestra base de datos
+const pool_mysql = mysql.createPool({
 
-});
+    host: "localhost",
+    user: "aelix",
+    password: "aelix2026",
+    database: "aelix_stream",
 
-
-// COMPROBAMOS LA CONEXIÓN CON MYSQL
-conexion.connect((error) => {
-
-    if(error){
-
-        console.log("Error conectando con MySQL");
-        console.log(error);
-
-    } else {
-
-        console.log("Conexión correcta con MySQL");
-
-    }
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
 
 });
 
 
-// ------------------------------
-// RUTAS GET
-// ------------------------------
+// --------------------------------------------------
+// FUNCIÓN PARA INICIAR EL SERVIDOR
+// --------------------------------------------------
 
+function iniciarServidor() {
 
-// Función para obtener todas las películas
-function consultarPeliculas() {
+    // Compruebo conexión con MySQL
+    pool_mysql.getConnection((error, connection) => {
 
-    // Creamos la URL de nuestro servidor
-    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
+        if (error) {
 
-    ENDPOINT_SERVER_PUERTO.port = PORT;
+            console.error("Error conectando a MySQL:", error);
 
-
-    // Creamos la URL del endpoint de películas
-    const ENDPOINT_SERVER_PELICULAS = new URL(
-
-        ENDPOINT_OBTENER_PELICULAS,
-
-        ENDPOINT_SERVER_PUERTO
-
-    );
-
-
-    // Hacemos la petición al backend
-    fetch(ENDPOINT_SERVER_PELICULAS)
-
-    .then(respuesta_servidor => {
-
-        // Si hay error lanzamos mensaje
-        if(!respuesta_servidor.ok){
-
-            throw new Error("Error al obtener las películas.");
+            process.exit(1);
 
         }
 
-        // Convertimos la respuesta a JSON
-        return respuesta_servidor.json();
+        connection.release();
 
-    })
+        // Inicio servidor
+        app.listen(PORT, () => {
 
-    .then(datos_peliculas => {
+            console.log(`
 
-        // Mostramos las películas en pantalla
-        mostrarPeliculas(datos_peliculas);
+                Conectado a MySQL.
+                Servidor funcionando en http://localhost:${PORT}
 
-    })
+            `);
 
-    .catch(error => {
-
-        // Mostramos error en consola
-        console.error("Error consultando películas:", error);
-
-        // Mostramos mensaje de error en pantalla
-        mensajeSalida.innerHTML = `
-
-            <p><b>Error:</b> ${error}</p>
-
-        `;
+        });
 
     });
 
 }
 
 
-// Función para insertar una nueva película
-function insertarPelicula(pelicula) {
+// --------------------------------------------------
+// GET → OBTENER TODAS LAS PELÍCULAS
+// --------------------------------------------------
 
-    // Creamos la URL del Endpoint para insertar una película
-    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
+app.get("/peliculas", (req, res) => {
 
-    ENDPOINT_SERVER_PUERTO.port = PORT;
+    const sql = "SELECT * FROM peliculas";
 
+    pool_mysql.query(sql, (error, resultados) => {
 
-    const ENDPOINT_SERVER_INSERTAR_PELICULAS = new URL(
+        if (error) {
 
-        ENDPOINT_INSERTAR_PELICULAS,
+            console.error("Error en la consulta:", error);
 
-        ENDPOINT_SERVER_PUERTO
-
-    );
-
-
-    fetch(ENDPOINT_SERVER_INSERTAR_PELICULAS, {
-
-        method: "POST",
-
-        headers: {
-
-            "Content-Type": "application/json"
-
-        },
-
-        body: JSON.stringify(pelicula)
-
-    })
-
-    .then(respuesta_servidor => {
-
-        if(!respuesta_servidor.ok){
-
-            throw new Error("Error al insertar la película.");
+            return res.status(500).json({ error });
 
         }
 
-        return respuesta_servidor.json();
-
-    })
-
-    .then(datos => {
-
-        console.log(datos);
-
-        alert(datos.mensaje);
-
-    })
-
-    .catch(error => {
-
-        console.error("Error al insertar la película:", error); // Muestro el error en la consola
-
-        mensajesalida.innerHTML = `
-
-            <p><b>Error</b>: ${error}</p>
-
-        `; // Muestro mensaje de error en la interfaz
+        res.json(resultados);
 
     });
 
-}
+});
 
 
-// Función para eliminar una película
-function eliminarPelicula(pelicula) {
+// --------------------------------------------------
+// POST → INSERTAR PELÍCULA
+// --------------------------------------------------
 
-    // Creamos la URL del Endpoint para eliminar una película
-    const ENDPOINT_SERVER_PUERTO = new URL(ENDPOINT_SERVER);
+app.post("/peliculas", (req, res) => {
 
-    ENDPOINT_SERVER_PUERTO.port = PORT;
+    // Recupero los datos enviados desde el frontend
+    const {
+
+        titulo,
+        anio,
+        director,
+        descripcion,
+        puntuacion,
+        id_categoria
+
+    } = req.body;
 
 
-    const ENDPOINT_SERVER_ELIMINAR_PELICULAS = new URL(
+    const sql = `
 
-        ENDPOINT_INSERTAR_ELIMINAR_ACTUALIZAR_PELICULAS + `/${pelicula.id}`,
+        INSERT INTO peliculas
+        (
+            titulo,
+            anio,
+            director,
+            descripcion,
+            puntuacion,
+            id_categoria
+        )
 
-        ENDPOINT_SERVER_PUERTO
+        VALUES (?, ?, ?, ?, ?, ?)
 
-    );
+    `;
 
 
-    fetch(ENDPOINT_SERVER_ELIMINAR_PELICULAS, {
+    pool_mysql.query(
 
-        method: "DELETE"
+        sql,
 
-    })
+        [
+            titulo,
+            anio,
+            director,
+            descripcion,
+            puntuacion,
+            id_categoria
+        ],
 
-    .then(respuesta_servidor => {
+        (error, resultado) => {
 
-        if(!respuesta_servidor.ok){
+            if (error) {
 
-            throw new Error("Error al eliminar la película.");
+                console.error("Error en INSERT:", error);
+
+                return res.status(500).json({ error });
+
+            }
+
+            res.json({
+
+                mensaje: "Película insertada correctamente",
+
+                datos: {
+
+                    titulo,
+                    anio,
+                    director,
+                    descripcion,
+                    puntuacion,
+                    id_categoria
+
+                }
+
+            });
 
         }
 
-        return respuesta_servidor.json();
+    );
 
-    })
+});
 
-    .then(datos => {
 
-        console.log(datos);
+// --------------------------------------------------
+// PUT → ACTUALIZAR PELÍCULA
+// --------------------------------------------------
 
-        alert(datos.mensaje);
+app.put("/peliculas/:id", (req, res) => {
 
-    })
+    // Recupero id enviado por URL
+    const id = req.params.id;
 
-    .catch(error => {
+    // Recupero datos enviados desde frontend
+    const {
 
-        console.error("Error al eliminar la película:", error); // Muestro el error en la consola
+        titulo,
+        anio,
+        director,
+        descripcion,
+        puntuacion,
+        id_categoria
 
-        mensajesalida.innerHTML = `
+    } = req.body;
 
-            <p><b>Error</b>: ${error}</p>
 
-        `; // Muestro mensaje de error en la interfaz
+    const sql = `
+
+        UPDATE peliculas
+
+        SET
+            titulo = ?,
+            anio = ?,
+            director = ?,
+            descripcion = ?,
+            puntuacion = ?,
+            id_categoria = ?
+
+        WHERE id = ?
+
+    `;
+
+
+    pool_mysql.query(
+
+        sql,
+
+        [
+            titulo,
+            anio,
+            director,
+            descripcion,
+            puntuacion,
+            id_categoria,
+            id
+        ],
+
+        (error, resultado) => {
+
+            if (error) {
+
+                console.error("Error en UPDATE:", error);
+
+                return res.status(500).json({ error });
+
+            }
+
+            res.json({
+
+                mensaje: "Película actualizada correctamente"
+
+            });
+
+        }
+
+    );
+
+});
+
+
+// --------------------------------------------------
+// DELETE → ELIMINAR PELÍCULA
+// --------------------------------------------------
+
+app.delete("/peliculas/:id", (req, res) => {
+
+    // Recupero id enviado por URL
+    const id = req.params.id;
+
+
+    const sql = "DELETE FROM peliculas WHERE id = ?";
+
+
+    pool_mysql.query(sql, [id], (error) => {
+
+        if (error) {
+
+            console.error("Error en DELETE:", error);
+
+            return res.status(500).json({ error });
+
+        }
+
+        res.json({
+
+            mensaje: "Película eliminada correctamente"
+
+        });
 
     });
 
-}
+});
 
 
-// ------------------------------
+// --------------------------------------------------
 // INICIAMOS EL SERVIDOR
-// ------------------------------
+// --------------------------------------------------
 
-app.listen(PORT, () => {
-
-    console.log(`Servidor funcionando en http://localhost:${PORT}`);
-
-});
+iniciarServidor();

@@ -1,20 +1,218 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/estilos.css">
+
     <title>AELIX STREAM</title>
+
+    <!-- ESTILOS -->
+    <link rel="stylesheet" href="css/estilos.css">
+
+    <!-- ICONOS -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 </head>
 
 <body>
-    
-    <h1>Aelix Stream</h1>
-    <h2>Películas</h2>
-    <div id="peliculas"></div>
-    <script src="js/javascript.js"></script>
+
+    <!-- HEADER -->
+
+    <header>
+
+        <h1 class="logo">
+
+            AELIX STREAM
+
+        </h1>
+
+        <nav>
+
+            <ul>
+
+                <li><a href="#">Inicio</a></li>
+
+                <li><a href="#">Películas</a></li>
+
+                <li><a href="#">Series</a></li>
+
+                <li><a href="#">Géneros</a></li>
+
+            </ul>
+
+        </nav>
+
+    </header>
+
+
+    <!-- HERO -->
+
+    <section class="hero">
+
+        <div class="overlay"></div>
+
+        <div class="contenido-hero">
+
+            <h1>Dune</h1>
+
+            <p class="director">
+
+                <strong>Director:</strong> Denis Villeneuve
+
+            </p>
+
+            <p class="descripcion">
+
+                Paul Atreides viaja al planeta más peligroso del universo
+                para asegurar el futuro de su familia y su pueblo.
+
+            </p>
+
+            <p class="generos">
+
+                <strong>Género:</strong>
+                Ciencia ficción, Acción, Drama
+
+            </p>
+
+            <p class="puntuacion">
+
+                <strong>Puntuación:</strong> 9.1
+
+            </p>
+
+            <button class="boton-hero">
+
+                ▶ Ver ahora
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- CRUD -->
+
+    <section class="crud-peliculas">
+
+        <h2>
+
+            Gestión de películas
+
+        </h2>
+
+        <div class="contenedor-formularios">
+
+
+            <!-- INSERTAR -->
+
+            <div class="card-formulario">
+
+                <h3>Insertar película</h3>
+
+                <input type="text" id="titulo" placeholder="Título">
+
+                <input type="number" id="anio" placeholder="Año">
+
+                <input type="text" id="director" placeholder="Director">
+
+                <input type="text" id="descripcion" placeholder="Descripción">
+
+                <input type="number" id="puntuacion" placeholder="Puntuación">
+
+                <input type="number" id="id_categoria" placeholder="ID categoría">
+
+                <button id="botoninsertarpelicula">
+
+                    Insertar película
+
+                </button>
+
+            </div>
+
+
+            <!-- ACTUALIZAR -->
+
+            <div class="card-formulario">
+
+                <h3>Actualizar película</h3>
+
+                <input type="number" id="id_actualizar" placeholder="ID película">
+
+                <input type="text" id="titulo_actualizar" placeholder="Nuevo título">
+
+                <input type="number" id="anio_actualizar" placeholder="Nuevo año">
+
+                <input type="text" id="director_actualizar" placeholder="Nuevo director">
+
+                <input type="text" id="descripcion_actualizar" placeholder="Nueva descripción">
+
+                <input type="number" id="puntuacion_actualizar" placeholder="Nueva puntuación">
+
+                <input type="number" id="categoria_actualizar" placeholder="Nueva categoría">
+
+                <button id="botonactualizarpelicula">
+
+                    Actualizar película
+
+                </button>
+
+            </div>
+
+
+            <!-- ELIMINAR -->
+
+            <div class="card-formulario">
+
+                <h3>Eliminar película</h3>
+
+                <input type="number" id="id_eliminar" placeholder="ID película">
+
+                <button id="botoneliminarpelicula">
+
+                    Eliminar película
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- PELÍCULAS -->
+
+    <section class="seccion-peliculas">
+
+        <div class="titulo-seccion">
+
+            <h2>
+
+                🎬 Top películas hoy
+
+            </h2>
+
+        </div>
+
+        <button id="botonmostrarpeliculas" class="boton-mostrar">
+
+            Mostrar películas
+
+        </button>
+
+        <div id="peliculas" class="contenedor-peliculas"></div>
+
+    </section>
+
+
+    <script src="./js/javascript.js"></script>
 
 </body>
+
 </html>
-
-
